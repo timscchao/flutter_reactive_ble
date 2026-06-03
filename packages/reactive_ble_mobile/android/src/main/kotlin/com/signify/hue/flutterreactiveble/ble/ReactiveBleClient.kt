@@ -15,7 +15,7 @@ import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.RxBleDeviceServices
 import com.polidea.rxandroidble2.scan.IsConnectable
 import com.polidea.rxandroidble2.scan.ScanFilter
-import com.polidea.rxandroidble2.scan.ScanSettings
+import com.polidea.rxandroidble2.scan.ScanSettings as RxScanSettings
 import com.signify.hue.flutterreactiveble.ble.extensions.resolveCharacteristic
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithResponse
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithoutResponse
@@ -75,10 +75,12 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             }.toTypedArray()
 
         return rxBleClient.scanBleDevices(
-            ScanSettings.Builder()
+            // RxAndroidBle's ScanSettings wrapper does not expose explicit PHY control.
+            // Use non-legacy scanning and rely on the platform's default PHY selection.
+            RxScanSettings.Builder()
                 .setScanMode(scanMode.toScanSettings())
                 .setLegacy(false)
-                .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+                .setCallbackType(RxScanSettings.CALLBACK_TYPE_ALL_MATCHES)
                 .setShouldCheckLocationServicesState(requireLocationServicesEnabled)
                 .build(),
             *filters,
