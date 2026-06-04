@@ -13,9 +13,12 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.RxBleDeviceServices
-import com.polidea.rxandroidble2.scan.IsConnectable
-import com.polidea.rxandroidble2.scan.ScanFilter
-import com.polidea.rxandroidble2.scan.ScanSettings as RxScanSettings
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import com.signify.hue.flutterreactiveble.ble.extensions.resolveCharacteristic
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithResponse
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithoutResponse
@@ -67,41 +70,81 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         scanMode: ScanMode,
         requireLocationServicesEnabled: Boolean,
     ): Observable<ScanInfo> {
-        val filters =
-            services.map { service ->
-                ScanFilter.Builder()
-                    .setServiceUuid(service)
-                    .build()
-            }.toTypedArray()
+        val bluetoothManager =
+            context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                ?: return Observable.error(IllegalStateException("Bluetooth manager not available"))
 
-        return rxBleClient.scanBleDevices(
-            // RxAndroidBle's ScanSettings wrapper does not expose explicit PHY control.
-            // Use non-legacy scanning and rely on the platform's default PHY selection.
-            RxScanSettings.Builder()
-                .setScanMode(scanMode.toScanSettings())
-                .setLegacy(false)
-                .setCallbackType(RxScanSettings.CALLBACK_TYPE_ALL_MATCHES)
-                .setShouldCheckLocationServicesState(requireLocationServicesEnabled)
-                .build(),
-            *filters,
-        )
-            .map { result ->
-                ScanInfo(
-                    result.bleDevice.macAddress,
-                    result.scanRecord.deviceName
-                        ?: result.bleDevice.name ?: "",
-                    result.rssi,
-                    when (result.isConnectable) {
-                        null -> Connectable.UNKNOWN
-                        IsConnectable.LEGACY_UNKNOWN -> Connectable.UNKNOWN
-                        IsConnectable.NOT_CONNECTABLE -> Connectable.NOT_CONNECTABLE
-                        IsConnectable.CONNECTABLE -> Connectable.CONNECTABLE
-                    },
-                    result.scanRecord.serviceData?.mapKeys { it.key.uuid } ?: emptyMap(),
-                    result.scanRecord.serviceUuids?.map { it.uuid } ?: emptyList(),
-                    extractManufacturerData(result.scanRecord.manufacturerSpecificData),
-                )
+        val bluetoothAdapter = bluetoothManager.adapter
+            ?: return Observable.error(IllegalStateException("Bluetooth adapter not available"))
+
+        val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
+            ?: return Observable.error(IllegalStateException("Bluetooth LE scanner not available"))
+
+        val filters = services.map { service ->
+            android.bluetooth.le.ScanFilter.Builder()
+                .setServiceUuid(service)
+                .build()
+        }
+
+        val scanSettingsBuilder = ScanSettings.Builder()
+            .setScanMode(scanMode.toScanSettings())
+            .setLegacy(false)
+            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            scanSettingsBuilder.setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED)
+        }
+
+        return Observable.create<ScanInfo> { emitter ->
+            val scanCallback = object : ScanCallback() {
+                override fun onScanResult(callbackType: Int, result: ScanResult) {
+                    if (emitter.isDisposed) return
+
+                    emitter.onNext(
+                        ScanInfo(
+                            result.device?.address ?: "",
+                            result.scanRecord?.deviceName
+                                ?: result.device?.name ?: "",
+                            result.rssi,
+                            when {
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && result.isConnectable -> Connectable.CONNECTABLE
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !result.isConnectable -> Connectable.NOT_CONNECTABLE
+                                else -> Connectable.UNKNOWN
+                            },
+                            result.scanRecord?.serviceData?.mapKeys { it.key.uuid } ?: emptyMap(),
+                            result.scanRecord?.serviceUuids?.map { it.uuid } ?: emptyList(),
+                            extractManufacturerData(result.scanRecord?.manufacturerSpecificData),
+                        ),
+                    )
+                }
+
+                override fun onBatchScanResults(results: MutableList<ScanResult>) {
+                    for (scanResult in results) {
+                        onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, scanResult)
+                    }
+                }
+
+                override fun onScanFailed(errorCode: Int) {
+                    if (!emitter.isDisposed) {
+                        emitter.onError(Exception("BLE scan failed with error code $errorCode"))
+                    }
+                }
             }
+
+            try {
+                // bluetoothLeScanner.startScan(filters, scanSettingsBuilder.build(), scanCallback)
+                bluetoothLeScanner.startScan(null, scanSettingsBuilder.build(), scanCallback)
+            } catch (error: Exception) {
+                if (!emitter.isDisposed) {
+                    emitter.onError(error)
+                }
+                return@create
+            }
+
+            emitter.setCancellable {
+                bluetoothLeScanner.stopScan(scanCallback)
+            }
+        }
     }
 
     override fun connectToDevice(
