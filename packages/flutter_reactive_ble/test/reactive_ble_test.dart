@@ -353,7 +353,7 @@ void main() {
 
       final device = DiscoveredDevice(
         id: 'deviceId',
-        manufacturerData: Uint8List.fromList([0]),
+        manufacturerData: const {},
         name: 'test',
         rssi: -39,
         connectable: Connectable.unknown,

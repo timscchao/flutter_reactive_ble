@@ -69,7 +69,7 @@ abstract class $DiscoveredDevice {
   String get name;
   Map<Uuid, Uint8List> get serviceData;
   List<Uuid> get serviceUuids;
-  Uint8List get manufacturerData;
+  Map<int, Uint8List> get manufacturerData;
   int get rssi;
   int get primaryPhy;
   int get secondaryPhy;
@@ -80,7 +80,7 @@ abstract class $DiscoveredDevice {
     String? name,
     Map<Uuid, Uint8List>? serviceData,
     List<Uuid>? serviceUuids,
-    Uint8List? manufacturerData,
+    Map<int, Uint8List>? manufacturerData,
     int? rssi,
     int? primaryPhy,
     int? secondaryPhy,
@@ -180,7 +180,7 @@ class DiscoveredDevice$Change {
   String name;
   Map<Uuid, Uint8List> serviceData;
   List<Uuid> serviceUuids;
-  Uint8List manufacturerData;
+  Map<int, Uint8List> manufacturerData;
   int rssi;
   int primaryPhy;
   int secondaryPhy;
@@ -211,7 +211,7 @@ class DiscoveredDevice$ {
         serviceUuidsContainer.copyWith(serviceUuids: serviceUuids),
   );
 
-  static final manufacturerData = Lens<DiscoveredDevice, Uint8List>(
+  static final manufacturerData = Lens<DiscoveredDevice, Map<int, Uint8List>>(
     (manufacturerDataContainer) => manufacturerDataContainer.manufacturerData,
     (manufacturerDataContainer, manufacturerData) =>
         manufacturerDataContainer.copyWith(manufacturerData: manufacturerData),

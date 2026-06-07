@@ -501,7 +501,7 @@ void main() {
         connectable: Connectable.unknown,
         serviceData: const {},
         serviceUuids: const [],
-        manufacturerData: Uint8List.fromList([1]),
+        manufacturerData: const {},
       );
       late ScanResult scanResult;
 

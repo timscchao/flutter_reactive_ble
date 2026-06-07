@@ -31,7 +31,7 @@ void main() {
           ..data = [4, 5, 6];
         serviceUuid1 = pb.Uuid()..data = [2];
         serviceUuid2 = pb.Uuid()..data = [3];
-        manufacturerData = Uint8List.fromList([1, 2, 3]);
+        manufacturerData = Uint8List.fromList([1, 2, 1, 0, 3]);
 
         message = pb.DeviceScanInfo()
           ..id = id
@@ -103,7 +103,7 @@ void main() {
             scanresult.result.iif(
                 success: (d) => d.manufacturerData,
                 failure: (_) => throw Exception()),
-            manufacturerData);
+            { 513: Uint8List.fromList([3]) });
       });
 
       group('given Scan fails', () {

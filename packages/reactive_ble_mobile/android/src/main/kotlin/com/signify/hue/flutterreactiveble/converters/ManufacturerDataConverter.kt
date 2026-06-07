@@ -11,7 +11,12 @@ fun extractManufacturerData(manufacturerData: SparseArray<ByteArray>?): ByteArra
             val payload = manufacturerData.valueAt(i)
 
             rawData.add((companyId.toByte()))
-            rawData.add(((companyId.shr(Byte.SIZE_BITS)).toByte()))
+            rawData.add(((companyId.shr(8)).toByte()))
+
+            val payloadLength = payload.size
+            rawData.add((payloadLength.toByte()))
+            rawData.add(((payloadLength.shr(8)).toByte()))
+
             rawData.addAll(payload.asList())
         }
     }

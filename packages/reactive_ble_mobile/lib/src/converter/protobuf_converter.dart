@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:reactive_ble_platform_interface/reactive_ble_platform_interface.dart';
 
@@ -62,7 +63,7 @@ class ProtobufConverterImpl implements ProtobufConverter {
           name: message.name,
           serviceData: serviceData,
           serviceUuids: serviceUuids,
-          manufacturerData: Uint8List.fromList(message.manufacturerData),
+          manufacturerData: _parseManufacturerData(message.manufacturerData),
           rssi: message.rssi,
           primaryPhy: message.primaryPhy,
           secondaryPhy: message.secondaryPhy,
@@ -249,6 +250,25 @@ class ProtobufConverterImpl implements ProtobufConverter {
     }
 
     return Connectable.unknown;
+  }
+
+  Map<int, Uint8List> _parseManufacturerData(List<int> rawBytes) {
+    final Map<int, Uint8List> manufacturerDataMap = {};
+    int offset = 0;
+    final Uint8List uint8list = Uint8List.fromList(rawBytes);
+    final ByteData data = ByteData.sublistView(uint8list);
+    while (offset + 4 <= uint8list.length) {
+      final companyId = data.getUint16(offset, Endian.little);
+      final length = data.getUint16(offset + 2, Endian.little);
+      if (offset + 4 + length <= uint8list.length) {
+        final payload = Uint8List.sublistView(uint8list, offset + 4, offset + 4 + length);
+        manufacturerDataMap[companyId] = payload;
+        offset += 4 + length;
+      } else {
+        break;
+      }
+    }
+    return manufacturerDataMap;
   }
 }
 

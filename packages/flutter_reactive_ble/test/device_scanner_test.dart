@@ -26,7 +26,7 @@ void main() {
         name: 'Test1',
         serviceUuids: const [],
         serviceData: const {},
-        manufacturerData: Uint8List.fromList([1]),
+        manufacturerData: const {},
         rssi: -40,
         connectable: Connectable.unknown,
       );
@@ -35,7 +35,7 @@ void main() {
         name: 'Test2',
         serviceUuids: const [],
         serviceData: const {},
-        manufacturerData: Uint8List.fromList([0]),
+        manufacturerData: const {},
         rssi: -80,
         connectable: Connectable.unknown,
       );

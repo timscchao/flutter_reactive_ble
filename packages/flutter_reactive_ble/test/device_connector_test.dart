@@ -95,7 +95,7 @@ void main() {
       final uuidCurrentScan = Uuid.parse('FEFE');
       final discoveredDevice = DiscoveredDevice(
         id: 'deviceId',
-        manufacturerData: Uint8List.fromList([0]),
+        manufacturerData: const {},
         serviceUuids: const [],
         name: 'test',
         rssi: -39,
