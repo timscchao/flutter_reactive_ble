@@ -16,6 +16,8 @@ message DeviceScanInfo {
     bytes manufacturerData = 6;
     repeated Uuid serviceUuids = 7;
     int32 rssi = 5;
+    int32 primaryPhy = 9;
+    int32 secondaryPhy = 10;
     IsConnectable isConnectable = 8;
 }
 

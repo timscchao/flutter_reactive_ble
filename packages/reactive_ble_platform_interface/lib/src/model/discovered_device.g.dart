@@ -71,6 +71,8 @@ abstract class $DiscoveredDevice {
   List<Uuid> get serviceUuids;
   Uint8List get manufacturerData;
   int get rssi;
+  int get primaryPhy;
+  int get secondaryPhy;
   Connectable get connectable;
 
   DiscoveredDevice copyWith({
@@ -80,6 +82,8 @@ abstract class $DiscoveredDevice {
     List<Uuid>? serviceUuids,
     Uint8List? manufacturerData,
     int? rssi,
+    int? primaryPhy,
+    int? secondaryPhy,
     Connectable? connectable,
   }) =>
       DiscoveredDevice(
@@ -89,6 +93,8 @@ abstract class $DiscoveredDevice {
         serviceUuids: serviceUuids ?? this.serviceUuids,
         manufacturerData: manufacturerData ?? this.manufacturerData,
         rssi: rssi ?? this.rssi,
+        primaryPhy: primaryPhy ?? this.primaryPhy,
+        secondaryPhy: secondaryPhy ?? this.secondaryPhy,
         connectable: connectable ?? this.connectable,
       );
 
@@ -101,6 +107,8 @@ abstract class $DiscoveredDevice {
       this.serviceUuids,
       this.manufacturerData,
       this.rssi,
+      this.primaryPhy,
+      this.secondaryPhy,
       this.connectable,
     );
     mutator(change);
@@ -111,13 +119,15 @@ abstract class $DiscoveredDevice {
       serviceUuids: change.serviceUuids,
       manufacturerData: change.manufacturerData,
       rssi: change.rssi,
+      primaryPhy: change.primaryPhy,
+      secondaryPhy: change.secondaryPhy,
       connectable: change.connectable,
     );
   }
 
   @override
   String toString() =>
-      "DiscoveredDevice(id: $id, name: $name, serviceData: $serviceData, serviceUuids: $serviceUuids, manufacturerData: $manufacturerData, rssi: $rssi, connectable: $connectable)";
+      "DiscoveredDevice(id: $id, name: $name, serviceData: $serviceData, serviceUuids: $serviceUuids, manufacturerData: $manufacturerData, rssi: $rssi, primaryPhy: $primaryPhy, secondaryPhy: $secondaryPhy, connectable: $connectable)";
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
@@ -131,6 +141,8 @@ abstract class $DiscoveredDevice {
       const DeepCollectionEquality()
           .equals(manufacturerData, other.manufacturerData) &&
       rssi == other.rssi &&
+      primaryPhy == other.primaryPhy &&
+      secondaryPhy == other.secondaryPhy &&
       connectable == other.connectable;
 
   @override
@@ -144,6 +156,8 @@ abstract class $DiscoveredDevice {
     result =
         37 * result + const DeepCollectionEquality().hash(manufacturerData);
     result = 37 * result + rssi.hashCode;
+    result = 37 * result + primaryPhy.hashCode;
+    result = 37 * result + secondaryPhy.hashCode;
     result = 37 * result + connectable.hashCode;
     return result;
   }
@@ -157,6 +171,8 @@ class DiscoveredDevice$Change {
     this.serviceUuids,
     this.manufacturerData,
     this.rssi,
+    this.primaryPhy,
+    this.secondaryPhy,
     this.connectable,
   );
 
@@ -166,6 +182,8 @@ class DiscoveredDevice$Change {
   List<Uuid> serviceUuids;
   Uint8List manufacturerData;
   int rssi;
+  int primaryPhy;
+  int secondaryPhy;
   Connectable connectable;
 }
 
@@ -202,6 +220,18 @@ class DiscoveredDevice$ {
   static final rssi = Lens<DiscoveredDevice, int>(
     (rssiContainer) => rssiContainer.rssi,
     (rssiContainer, rssi) => rssiContainer.copyWith(rssi: rssi),
+  );
+
+  static final primaryPhy = Lens<DiscoveredDevice, int>(
+    (primaryPhyContainer) => primaryPhyContainer.primaryPhy,
+    (primaryPhyContainer, primaryPhy) =>
+        primaryPhyContainer.copyWith(primaryPhy: primaryPhy),
+  );
+
+  static final secondaryPhy = Lens<DiscoveredDevice, int>(
+    (secondaryPhyContainer) => secondaryPhyContainer.secondaryPhy,
+    (secondaryPhyContainer, secondaryPhy) =>
+        secondaryPhyContainer.copyWith(secondaryPhy: secondaryPhy),
   );
 
   static final connectable = Lens<DiscoveredDevice, Connectable>(

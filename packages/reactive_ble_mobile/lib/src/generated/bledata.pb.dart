@@ -98,6 +98,8 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     GenericFailure? failure,
     $core.Iterable<ServiceDataEntry>? serviceData,
     $core.int? rssi,
+    $core.int? primaryPhy,
+    $core.int? secondaryPhy,
     $core.List<$core.int>? manufacturerData,
     $core.Iterable<Uuid>? serviceUuids,
     IsConnectable? isConnectable,
@@ -108,6 +110,8 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     if (failure != null) result.failure = failure;
     if (serviceData != null) result.serviceData.addAll(serviceData);
     if (rssi != null) result.rssi = rssi;
+    if (primaryPhy != null) result.primaryPhy = primaryPhy;
+    if (secondaryPhy != null) result.secondaryPhy = secondaryPhy;
     if (manufacturerData != null) result.manufacturerData = manufacturerData;
     if (serviceUuids != null) result.serviceUuids.addAll(serviceUuids);
     if (isConnectable != null) result.isConnectable = isConnectable;
@@ -133,6 +137,8 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
     ..pPM<ServiceDataEntry>(4, _omitFieldNames ? '' : 'serviceData',
         protoName: 'serviceData', subBuilder: ServiceDataEntry.create)
     ..aI(5, _omitFieldNames ? '' : 'rssi')
+    ..aI(9, _omitFieldNames ? '' : 'primaryPhy', protoName: 'primaryPhy')
+    ..aI(10, _omitFieldNames ? '' : 'secondaryPhy', protoName: 'secondaryPhy')
     ..a<$core.List<$core.int>>(
         6, _omitFieldNames ? '' : 'manufacturerData', $pb.PbFieldType.OY,
         protoName: 'manufacturerData')
@@ -203,19 +209,37 @@ class DeviceScanInfo extends $pb.GeneratedMessage {
   void clearRssi() => $_clearField(5);
 
   @$pb.TagNumber(6)
-  $core.List<$core.int> get manufacturerData => $_getN(5);
+  $core.List<$core.int> get manufacturerData => $_getN(7);
   @$pb.TagNumber(6)
-  set manufacturerData($core.List<$core.int> value) => $_setBytes(5, value);
+  set manufacturerData($core.List<$core.int> value) => $_setBytes(7, value);
   @$pb.TagNumber(6)
-  $core.bool hasManufacturerData() => $_has(5);
+  $core.bool hasManufacturerData() => $_has(7);
   @$pb.TagNumber(6)
   void clearManufacturerData() => $_clearField(6);
 
+  @$pb.TagNumber(9)
+  $core.int get primaryPhy => $_getIZ(5);
+  @$pb.TagNumber(9)
+  set primaryPhy($core.int value) => $_setSignedInt32(5, value);
+  @$pb.TagNumber(9)
+  $core.bool hasPrimaryPhy() => $_has(5);
+  @$pb.TagNumber(9)
+  void clearPrimaryPhy() => $_clearField(9);
+
+  @$pb.TagNumber(10)
+  $core.int get secondaryPhy => $_getIZ(6);
+  @$pb.TagNumber(10)
+  set secondaryPhy($core.int value) => $_setSignedInt32(6, value);
+  @$pb.TagNumber(10)
+  $core.bool hasSecondaryPhy() => $_has(6);
+  @$pb.TagNumber(10)
+  void clearSecondaryPhy() => $_clearField(10);
+
   @$pb.TagNumber(7)
-  $pb.PbList<Uuid> get serviceUuids => $_getList(6);
+  $pb.PbList<Uuid> get serviceUuids => $_getList(8);
 
   @$pb.TagNumber(8)
-  IsConnectable get isConnectable => $_getN(7);
+  IsConnectable get isConnectable => $_getN(9);
   @$pb.TagNumber(8)
   set isConnectable(IsConnectable value) => $_setField(8, value);
   @$pb.TagNumber(8)

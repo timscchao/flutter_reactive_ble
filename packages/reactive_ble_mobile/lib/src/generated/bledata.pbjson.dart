@@ -67,6 +67,7 @@ const DeviceScanInfo$json = {
       '6': '.ServiceDataEntry',
       '10': 'serviceData'
     },
+    {'1': 'rssi', '3': 5, '4': 1, '5': 5, '10': 'rssi'},
     {
       '1': 'manufacturerData',
       '3': 6,
@@ -82,7 +83,6 @@ const DeviceScanInfo$json = {
       '6': '.Uuid',
       '10': 'serviceUuids'
     },
-    {'1': 'rssi', '3': 5, '4': 1, '5': 5, '10': 'rssi'},
     {
       '1': 'isConnectable',
       '3': 8,
@@ -91,6 +91,8 @@ const DeviceScanInfo$json = {
       '6': '.IsConnectable',
       '10': 'isConnectable'
     },
+    {'1': 'primaryPhy', '3': 9, '4': 1, '5': 5, '10': 'primaryPhy'},
+    {'1': 'secondaryPhy', '3': 10, '4': 1, '5': 5, '10': 'secondaryPhy'},
   ],
 };
 

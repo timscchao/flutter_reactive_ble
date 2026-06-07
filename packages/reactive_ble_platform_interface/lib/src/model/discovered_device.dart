@@ -42,6 +42,8 @@ class DiscoveredDevice extends $DiscoveredDevice {
 
   final int rssi;
 
+  final int primaryPhy;
+  final int secondaryPhy;
   final Connectable connectable;
 
   const DiscoveredDevice({
@@ -51,6 +53,8 @@ class DiscoveredDevice extends $DiscoveredDevice {
     required this.manufacturerData,
     required this.rssi,
     required this.serviceUuids,
+    this.primaryPhy = 0,
+    this.secondaryPhy = 0,
     this.connectable = Connectable.unknown,
   });
 }

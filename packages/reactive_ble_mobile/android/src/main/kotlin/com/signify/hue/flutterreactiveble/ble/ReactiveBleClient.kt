@@ -13,12 +13,14 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import com.polidea.rxandroidble2.RxBleDeviceServices
+import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import androidx.core.content.ContextCompat
 import com.signify.hue.flutterreactiveble.ble.extensions.resolveCharacteristic
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithResponse
 import com.signify.hue.flutterreactiveble.ble.extensions.writeCharWithoutResponse
@@ -80,6 +82,14 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         val bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
             ?: return Observable.error(IllegalStateException("Bluetooth LE scanner not available"))
 
+        // Debug: Check FINE_LOCATION permission for iBeacon scanning
+        val fineLocationPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        val hasPermission = fineLocationPermission == android.content.pm.PackageManager.PERMISSION_GRANTED
+        println("[BLE Scan Debug] ACCESS_FINE_LOCATION permission granted: $hasPermission (result code: $fineLocationPermission)")
+
         val filters = services.map { service ->
             android.bluetooth.le.ScanFilter.Builder()
                 .setServiceUuid(service)
@@ -89,6 +99,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
         val scanSettingsBuilder = ScanSettings.Builder()
             .setScanMode(scanMode.toScanSettings())
             .setLegacy(false)
+            .setReportDelay(0)
             .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -114,6 +125,8 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
                             result.scanRecord?.serviceData?.mapKeys { it.key.uuid } ?: emptyMap(),
                             result.scanRecord?.serviceUuids?.map { it.uuid } ?: emptyList(),
                             extractManufacturerData(result.scanRecord?.manufacturerSpecificData),
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) result.primaryPhy else 0,
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) result.secondaryPhy else 0,
                         ),
                     )
                 }
@@ -132,8 +145,7 @@ open class ReactiveBleClient(private val context: Context) : BleClient {
             }
 
             try {
-                // bluetoothLeScanner.startScan(filters, scanSettingsBuilder.build(), scanCallback)
-                bluetoothLeScanner.startScan(null, scanSettingsBuilder.build(), scanCallback)
+                bluetoothLeScanner.startScan(filters, scanSettingsBuilder.build(), scanCallback)
             } catch (error: Exception) {
                 if (!emitter.isDisposed) {
                     emitter.onError(error)
