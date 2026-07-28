@@ -4,6 +4,7 @@
   import FlutterMacOS
 #endif
 
+import Foundation
 import class CoreBluetooth.CBUUID
 import class CoreBluetooth.CBService
 import enum CoreBluetooth.CBManagerState
@@ -17,6 +18,26 @@ final class PluginController {
 
     struct Scan {
         let services: [CBUUID]
+    }
+
+    func encodeManufacturerData(_ manufacturerData: Data?) -> Data {
+        guard let manufacturerData, manufacturerData.count >= 2 else {
+            return Data()
+        }
+
+        let companyIdBytes = [UInt8](manufacturerData.prefix(2))
+        let companyId = Int(companyIdBytes[0]) | (Int(companyIdBytes[1]) << 8)
+        let payload = Array(manufacturerData.dropFirst(2))
+        let payloadLength = payload.count
+
+        var encodedData = Data()
+        encodedData.append(UInt8(companyId & 0xFF))
+        encodedData.append(UInt8((companyId >> 8) & 0xFF))
+        encodedData.append(UInt8(payloadLength & 0xFF))
+        encodedData.append(UInt8((payloadLength >> 8) & 0xFF))
+        encodedData.append(contentsOf: payload)
+
+        return encodedData
     }
 
     private var central: Central?
@@ -49,7 +70,7 @@ final class PluginController {
                 let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? ServiceData ?? [:]
                 let serviceUuids = advertisementData[CBAdvertisementDataServiceUUIDsKey] as? [CBUUID] ?? []
                 let isConnectable = (advertisementData[CBAdvertisementDataIsConnectable] as? NSNumber)?.boolValue
-                let manufacturerData = advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data ?? Data()
+                let manufacturerData = context.encodeManufacturerData(advertisementData[CBAdvertisementDataManufacturerDataKey] as? Data)
                 let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? peripheral.name ?? String()
                 let deviceDiscoveryMessage = DeviceScanInfo.with {
                     $0.id = peripheral.identifier.uuidString
