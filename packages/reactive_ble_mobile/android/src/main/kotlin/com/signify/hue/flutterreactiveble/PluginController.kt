@@ -287,8 +287,15 @@ class PluginController {
         result: Result,
     ) {
         val request = pb.NotifyCharacteristicRequest.parseFrom(call.arguments as ByteArray)
-        charNotificationHandler.subscribeToNotifications(request)
-        result.success(null)
+        charNotificationHandler.subscribeToNotifications(
+            request,
+            onSubscriptionCompleted = {
+                result.success(null)
+            },
+            onSubscriptionError = { error ->
+                result.error("char_notification_error", error.message, null)
+            },
+        )
     }
 
     private fun stopNotifications(
@@ -367,9 +374,29 @@ class PluginController {
                 result.success(protoConverter.convertDiscoverServicesInfo(request.deviceId, discoverResult).toByteArray())
             }, {
                     throwable ->
-                result.error("service_discovery_failure", throwable.toString(), throwable.stackTrace.toList().toString())
+                val (code, message) = mapDiscoverServicesError(throwable, request.deviceId)
+                result.error(code, message, throwable.stackTrace.toList().toString())
             })
             .discard()
+    }
+
+    private fun mapDiscoverServicesError(
+        throwable: Throwable,
+        deviceId: String,
+    ): Pair<String, String> {
+        val msg = throwable.message ?: ""
+        val isAlreadyConnected =
+            throwable is com.polidea.rxandroidble2.exceptions.BleAlreadyConnectedException ||
+                msg.contains("Already connected", ignoreCase = true)
+
+        return if (isAlreadyConnected) {
+            "device_already_connected" to
+                "Device $deviceId is already connected at the OS level but is no longer tracked " +
+                "by the plugin. Call disconnectDevice (or restart Bluetooth) before retrying. " +
+                "Original error: $msg"
+        } else {
+            "service_discovery_failure" to throwable.toString()
+        }
     }
 
     private fun readRssi(
